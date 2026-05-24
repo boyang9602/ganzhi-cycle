@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>六十甲子循环图 Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px 64px;
+      background: #fdf9f0;
+      font-family: 'Noto Serif SC', STSong, SimSun, Georgia, serif;
+      color: #3e3218;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      letter-spacing: .25em;
+      color: #8a7035;
+      margin: 0 0 20px;
+    }
+
+    /* Language switcher */
+    .lang-switcher {
+      display: inline-flex;
+      gap: 6px;
+      border: 1px solid #c9a038;
+      border-radius: 4px;
+      padding: 3px;
+    }
+
+    .lang-switcher select {
+      padding: 4px 28px 4px 14px;
+      border: none;
+      border-radius: 2px;
+      background: transparent;
+      font-family: inherit;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      color: #8a7035;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0h8L4 6Z' fill='%23c9a038'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .lang-switcher select:focus-visible {
+      outline: 2px solid #c9a038;
+      outline-offset: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>六十甲子循环图 Demo</h1>
+
+  <div class="lang-switcher">
+    <select id="lang-select" aria-label="Language"></select>
+  </div>
+</header>
+
+<sexagenary-cycle id="cycle" lang="zh" year="2026"></sexagenary-cycle>
+
+<script type="module" src="../src/sexagenary-cycle.js"></script>
+<script type="module">
+  import locales from '../src/locales/index.js';
+
+  const cycle  = document.getElementById('cycle');
+  const select = document.getElementById('lang-select');
+
+  Object.entries(locales).forEach(([code, locale]) => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = locale.label;
+    select.appendChild(opt);
+  });
+
+  select.value = cycle.getAttribute('lang') || 'zh';
+
+  select.addEventListener('change', () => {
+    cycle.setAttribute('lang', select.value);
+  });
+</script>
+
+</body>
+</html>
