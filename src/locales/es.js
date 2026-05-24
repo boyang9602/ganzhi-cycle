@@ -19,6 +19,10 @@ const es = {
   btnToday:    'Hoy',
   yearUnit:    '',
 
+  // Stem Branches
+  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
+  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
+
   // ── Legend ───────────────────────────────────────────────────────────────────
   yang:     '阳 (Yang)',
   yin:      '阴 (Yin)',
@@ -29,7 +33,7 @@ const es = {
   animalFont: "'Noto Emoji','Segoe UI Emoji','Apple Color Emoji',sans-serif",
 
   // ── SVG centre ───────────────────────────────────────────────────────────────
-  centerTitle:    '六十甲子',
+  centerTitle:    'Calendario chino',
   centerSubtitle: 'Ciclo sexagenario de Troncos y Ramas',
 
   // ── Accessibility ─────────────────────────────────────────────────────────────

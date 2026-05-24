@@ -76,10 +76,6 @@ const FONT = "'Noto Serif SC','STSong','SimSun',serif";
 // away from the 甲子 marker. Tune freely.
 const LABEL_NUDGE_THRESHOLD = 12;
 
-// Heavenly Stems and Earthly Branches are cultural symbols — always Chinese.
-const STEMS    = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-
 // ── Color palettes ───────────────────────────────────────────────────────────
 
 // C_ELEM[i] = [fillColor, textColor] for the 5 Five-Elements
@@ -668,8 +664,8 @@ class SexagenaryCycle extends HTMLElement {
       // Rings: [geometry, content, colors, optional font override]
       const rings = [
         [RA, L.animals[bi],  C_BRANCH[bi], L.animalFont],
-        [RB, BRANCHES[bi],   C_BRANCH[bi], null        ],
-        [RS, STEMS[si],      C_STEM[si],   null        ],
+        [RB, L.branches[bi],   C_BRANCH[bi], null        ],
+        [RS, L.stems[si],      C_STEM[si],   null        ],
       ];
 
       for (const [ring, ch, [fill, textColor], fontOverride] of rings) {
@@ -743,7 +739,7 @@ class SexagenaryCycle extends HTMLElement {
 
       // Ganzhi pair — the "name" of the selected year; always Chinese symbols
       const si = currentIdx % 10, bi = currentIdx % 12, ei = Math.floor(si / 2);
-      const ganzhi   = STEMS[si] + BRANCHES[bi];
+      const ganzhi   = L.stems[si] + L.branches[bi];
       const polarity = si % 2 === 0 ? L.yang : L.yin;
       const info     = L.fmtInfo(polarity, L.elements[ei], L.animals[bi]);
 
@@ -756,7 +752,7 @@ class SexagenaryCycle extends HTMLElement {
       svg.appendChild(mk('text', {
         x: CX, y: CY + 95,
         'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 22, 'font-family': FONT,
+        'font-size': 24, 'font-family': FONT,
         fill: '#8a7040', 'letter-spacing': '4'
       }, info));
     } else {
@@ -794,7 +790,7 @@ class SexagenaryCycle extends HTMLElement {
       const si = currentIdx % 10, bi = currentIdx % 12;
       outerMarker(
         curAngle,
-        STEMS[si] + BRANCHES[bi],
+        L.stems[si] + L.branches[bi],
         L.fmtYear(astroYear),
         '#cc3010',
         '#8a2008',

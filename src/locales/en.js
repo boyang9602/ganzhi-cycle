@@ -18,6 +18,10 @@ const en = {
   btnToday:    'Today',
   yearUnit:    '',        // year number is self-explanatory in English
 
+  // Stem Branches
+  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
+  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
+
   // ── Legend ───────────────────────────────────────────────────────────────────
   yang:     '阳 (Yang)',
   yin:      '阴 (Yin)',
@@ -31,7 +35,7 @@ const en = {
 
   // ── SVG centre ───────────────────────────────────────────────────────────────
   /** The proper name of the cycle — kept in Chinese as it is a cultural term. */
-  centerTitle:    '六十甲子',
+  centerTitle:    'Sexagenary Cycle',
   centerSubtitle: 'Stems-Branches 60-Year Cycle',
 
   // ── Accessibility ─────────────────────────────────────────────────────────────
