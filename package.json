@@ -1,6 +1,6 @@
 {
   "name": "ganzhi-cycle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A web component that visualises the 60-year sexagenary cycle (六十甲子) of Heavenly Stems and Earthly Branches, with multi-language support.",
   "type": "module",
   "main": "./src/ganzhi-cycle.js",
