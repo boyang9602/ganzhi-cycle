@@ -241,6 +241,14 @@ TPL.innerHTML = `
     display: block;
   }
 
+  /* SVG <g role="button"> elements have no intrinsic shape, so the browser
+     draws the focus outline as a rectangle around their entire bounding box.
+     Remove it here — keyboard focus is still communicated via the darkened
+     segment fill (applied in _buildWheel via isHighlight). */
+  #wheel g[role="button"]:focus {
+    outline: none;
+  }
+
   /* ── Legend ── */
   .legend {
     display: flex;
