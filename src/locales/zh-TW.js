@@ -1,15 +1,14 @@
-// zh-TW.js (或 tw.js)
+// zh-Hant.js
 /**
- * Traditional-Chinese locale for <sexagenary-cycle>.
+ * Traditional Chinese locale for <sexagenary-cycle>.
  *
- * Animals are rendered as traditional Chinese characters (生肖).
- * Heavenly Stems (天干) and Earthly Branches (地支) are universal symbols
- * and are NOT part of any locale — they never change.
+ * Symbols and words coincide in Traditional Chinese, so all *Words fields are null —
+ * the component falls back to the corresponding *Symbols array.
  *
  * @satisfies {import('../sexagenary-cycle.js').LocaleDef}
  */
 const zhTW = {
-  label: '繁體汉字',
+  label: '繁體漢字',
 
   // ── Year picker ──────────────────────────────────────────────────────────────
   pickerLabel: '西元',
@@ -18,53 +17,46 @@ const zhTW = {
   btnToday:    '今日',
   yearUnit:    '年',
 
-  // Stem Branches
-  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
-  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
-
   // ── Legend ───────────────────────────────────────────────────────────────────
   yang:     '陽',
   yin:      '陰',
   elements: ['木', '火', '土', '金', '水'],
 
-  // ── Animal ring ──────────────────────────────────────────────────────────────
-  /** Traditional Chinese characters for the outermost ring. */
-  animals:    ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬'],
-  /** null → inherits the component's default CJK serif font stack. */
-  animalFont: null,
+  // ── Symbols (displayed in the rings) ─────────────────────────────────────────
+  stemSymbols:   ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+  branchSymbols: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'],
+  // Traditional Chinese zodiac animals (with 龍 and 雞)
+  animalSymbols: ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬'],
+  animalFont:    null,
 
-  // ── SVG centre ───────────────────────────────────────────────────────────────
-  centerTitle:    '六十甲子',
-  centerSubtitle: '干支紀年循環',
+  // ── Words (displayed in centre, markers, tooltips, aria) ─────────────────────
+  // null → fall back to the corresponding *Symbols array.
+  stemWords:   null,
+  branchWords: null,
+  animalWords: null,
+
+  /**
+   * Format a ganzhi label when *Words differ from *Symbols.
+   * null → only the bare symbols are shown.
+   */
+  fmtGanzhi: null,
+
+  // ── Title ────────────────────────────────────────────────────────────────────
+  centerTitle:   '六十甲子',
+  displayMode:   'center',
+  titleFontSize: 52,
+  minFontSize:   null,
 
   // ── Accessibility ─────────────────────────────────────────────────────────────
   svgTitle: '六十甲子干支紀年循環圖',
   svgDesc:  '六十甲子干支紀年循環圖',
 
   // ── Footer ───────────────────────────────────────────────────────────────────
-  footer: '五行 \u2014 天干 \u2014 地支 \u2014 生肖',
+  footer: '五行 — 天干 — 地支 — 生肖',
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-
-  /**
-   * Format an astronomical year integer for display in markers.
-   * @param {number} astro  0 = 1 BC, negative = earlier BC
-   */
-  fmtYear: (astro) => astro <= 0 ? `西元前 ${1 - astro}` : `西元 ${astro}`,
-
-  /**
-   * Format the centre info line shown below the ganzhi pair.
-   * @param {string} pol    Polarity label (yang/yin string from this locale)
-   * @param {string} elem   Element name from this locale's `elements` array
-   * @param {string} animal Animal string (traditional Chinese character)
-   */
-  fmtInfo: (pol, elem, animal) => `${pol}${elem}  ·  ${animal}`,
-
-  /**
-   * Format a single legend entry label.
-   * @param {string} pol  Polarity label
-   * @param {string} elem Element name
-   */
+  fmtYear:   (astro) => astro <= 0 ? `西元前 ${1 - astro}` : `西元後 ${astro}`,
+  fmtInfo:   (pol, elem, animal) => `${pol}${elem}  ·  ${animal}`,
   fmtLegend: (pol, elem) => `${pol}${elem}`,
 };
 

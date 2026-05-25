@@ -2,16 +2,10 @@
 /**
  * German locale for <sexagenary-cycle>.
  *
- * Animals are rendered as emoji — universal pictograms that require no
- * translation and scale gracefully across scripts.
- * Heavenly Stems (天干) and Earthly Branches (地支) are universal symbols
- * and are NOT part of any locale — they never change.
- *
  * @satisfies {import('../sexagenary-cycle.js').LocaleDef}
  */
 const de = {
   label: 'Deutsch',
-
   // ── Year picker ──────────────────────────────────────────────────────────────
   pickerLabel: 'Jahr',
   btnBC:       'v. Chr.',
@@ -19,46 +13,41 @@ const de = {
   btnToday:    'Heute',
   yearUnit:    '',
 
-  // Stem Branches
-  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
-  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
-
   // ── Legend ───────────────────────────────────────────────────────────────────
-  yang:     '阳 (Yang)',
-  yin:      '阴 (Yin)',
-  elements: ['木 (Holz)', '火 (Feuer)', '土 (Erde)', '金 (Metall)', '水 (Wasser)'],
+  yang:     'Yang',
+  yin:      'Yin',
+  elements: ['Holz', 'Feuer', 'Erde', 'Metall', 'Wasser'],
 
-  // ── Animal ring ──────────────────────────────────────────────────────────────
-  animals: ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐒', '🐓', '🐕', '🐷'],
-  animalFont: "'Noto Emoji','Segoe UI Emoji','Apple Color Emoji',sans-serif",
+  // ── Symbols (displayed in the rings) ─────────────────────────────────────────
+  stemSymbols:   ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+  branchSymbols: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'],
+  animalSymbols: ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐒', '🐓', '🐕', '🐷'],
+  animalFont:    "'Noto Emoji','Segoe UI Emoji','Apple Color Emoji',sans-serif",
 
-  // ── SVG centre ───────────────────────────────────────────────────────────────
-  centerTitle:    'Chinesischer Kalender',
-  centerSubtitle: 'Sexagesimalzyklus der Himmelsstämme und Erdzweige',
+  // ── Words (displayed in centre, markers, tooltips, aria) ─────────────────────
+  stemWords:   ['Jiǎ', 'Yǐ', 'Bǐng', 'Dīng', 'Wù', 'Jǐ', 'Gēng', 'Xīn', 'Rén', 'Guǐ'],
+  branchWords: ['Zǐ', 'Chǒu', 'Yín', 'Mǎo', 'Chén', 'Sì', 'Wǔ', 'Wèi', 'Shēn', 'Yǒu', 'Xū', 'Hài'],
+  animalWords: ['Ratte', 'Büffel', 'Tiger', 'Hase', 'Drache', 'Schlange', 'Pferd', 'Ziege', 'Affe', 'Hahn', 'Hund', 'Schwein'],
+
+  fmtGanzhi: (stemSym, branchSym, stemWord, branchWord) =>
+    `${stemSym}${branchSym} (${stemWord} ${branchWord})`,
+
+  // ── Title ────────────────────────────────────────────────────────────────────
+  centerTitle:   'Sexagenärzyklus',
+  displayMode:   'ring',
+  titleFontSize: 48,
+  minFontSize:   12,
 
   // ── Accessibility ─────────────────────────────────────────────────────────────
-  svgTitle: 'Sexagesimalzyklus',
-  svgDesc:  'Radialdiagramm des 60‑jährigen Sexagesimalzyklus der Himmelsstämme und Erdzweige',
+  svgTitle: 'Sexagenärzyklus',
+  svgDesc:  'Rad-Diagramm des 60-Jahres-Zyklus der Himmelsstämme und Erdzweige',
 
   // ── Footer ───────────────────────────────────────────────────────────────────
   footer: 'Fünf Elemente — Himmelsstämme — Erdzweige — Tierkreiszeichen',
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-
-  /** @param {number} astro */
-  fmtYear: (astro) => astro <= 0 ? `${1 - astro} v. Chr.` : `${astro} n. Chr.`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   * @param {string} animal
-   */
-  fmtInfo: (pol, elem, animal) => `${pol} ${elem}  ·  ${animal}`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   */
+  fmtYear:   (astro) => astro <= 0 ? `${1 - astro} v. Chr.` : `${astro} n. Chr.`,
+  fmtInfo:   (pol, elem, animal) => `${pol} ${elem} · ${animal}`,
   fmtLegend: (pol, elem) => `${pol} ${elem}`,
 };
 

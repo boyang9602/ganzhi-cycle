@@ -2,10 +2,8 @@
 /**
  * Japanese locale for <sexagenary-cycle>.
  *
- * Animals are rendered as emoji — universal pictograms that require no
- * translation and scale gracefully across scripts.
- * Heavenly Stems (天干) and Earthly Branches (地支) are universal symbols
- * and are NOT part of any locale — they never change.
+ * Symbols and words coincide in Japanese, so all *Words fields are null —
+ * the component falls back to the corresponding *Symbols array.
  *
  * @satisfies {import('../sexagenary-cycle.js').LocaleDef}
  */
@@ -15,50 +13,50 @@ const ja = {
   // ── Year picker ──────────────────────────────────────────────────────────────
   pickerLabel: '年',
   btnBC:       '紀元前',
-  btnAD:       '紀元後',
+  btnAD:       '西暦',
   btnToday:    '今日',
   yearUnit:    '年',
-
-  // Stem Branches
-  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
-  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
 
   // ── Legend ───────────────────────────────────────────────────────────────────
   yang:     '陽',
   yin:      '陰',
   elements: ['木', '火', '土', '金', '水'],
 
-  // ── Animal ring ──────────────────────────────────────────────────────────────
-  animals: ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐒', '🐓', '🐕', '🐷'],
-  animalFont: "'Noto Emoji','Segoe UI Emoji','Apple Color Emoji',sans-serif",
+  // ── Symbols (displayed in the rings) ─────────────────────────────────────────
+  stemSymbols:   ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+  branchSymbols: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'],
+  // Japanese zodiac animals (using Japanese kanji variants)
+  animalSymbols: ['鼠', '牛', '虎', '兎', '竜', '蛇', '馬', '羊', '猿', '鶏', '犬', '猪'],
+  animalFont:    null,  // use default CJK font
 
-  // ── SVG centre ───────────────────────────────────────────────────────────────
-  centerTitle:    '六十甲子',
-  centerSubtitle: '干支六十周期',
+  // ── Words (displayed in centre, markers, tooltips, aria) ─────────────────────
+  // null → fall back to the corresponding *Symbols arrays (kanji)
+  stemWords:   null,
+  branchWords: null,
+  animalWords: null,
+
+  /**
+   * Format a ganzhi label when *Words differ from *Symbols.
+   * null → only the bare symbols are shown.
+   */
+  fmtGanzhi: null,
+
+  // ── Title ────────────────────────────────────────────────────────────────────
+  centerTitle:   '六十干支',
+  displayMode:   'center',      // use ring display (or 'center' as preferred)
+  titleFontSize: 52,
+  minFontSize:   null,
 
   // ── Accessibility ─────────────────────────────────────────────────────────────
-  svgTitle: '六十甲子（干支）周期図',
+  svgTitle: '六十干支',
   svgDesc:  '十干十二支による60年周期の循環図',
 
   // ── Footer ───────────────────────────────────────────────────────────────────
-  footer: '五行 — 十干 — 十二支 — 十二生肖',
+  footer: '五行 — 天干 — 地支 — 十二生肖',
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-
-  /** @param {number} astro */
-  fmtYear: (astro) => astro <= 0 ? `紀元前 ${1 - astro}` : `紀元後 ${astro}`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   * @param {string} animal
-   */
-  fmtInfo: (pol, elem, animal) => `${pol}${elem} ・ ${animal}`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   */
+  fmtYear:   (astro) => astro <= 0 ? `紀元前${1 - astro}年` : `西暦${astro}年`,
+  fmtInfo:   (pol, elem, animal) => `${pol}${elem} ・ ${animal}`,
   fmtLegend: (pol, elem) => `${pol}${elem}`,
 };
 

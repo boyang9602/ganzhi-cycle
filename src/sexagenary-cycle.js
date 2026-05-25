@@ -4,8 +4,8 @@
  * Usage:
  *   <script type="module" src="sexagenary-cycle.js"></script>
  *   <sexagenary-cycle></sexagenary-cycle>
- *   <sexagenary-cycle year="1984"></sexagenary-cycle>    <!-- AD 1984 -->
- *   <sexagenary-cycle year="-3"></sexagenary-cycle>      <!-- 4 BC   -->
+ *   <sexagenary-cycle year="1984"></sexagenary-cycle>        <!-- AD 1984 -->
+ *   <sexagenary-cycle year="-3"></sexagenary-cycle>          <!-- 4 BC   -->
  *   <sexagenary-cycle date="2026-05-23"></sexagenary-cycle>
  *   <sexagenary-cycle lang="en" year="2026"></sexagenary-cycle>
  *
@@ -46,39 +46,49 @@ for (const [lang, def] of Object.entries(locales)) {
 
 /**
  * @typedef {object} LocaleDef
- * @property {string}   label         Display name in the locale's own language (e.g. 'English', '中文')
- * @property {string}   pickerLabel
- * @property {string}   btnBC
- * @property {string}   btnAD
- * @property {string}   btnToday
- * @property {string}   yearUnit
- * @property {string}   yang
- * @property {string}   yin
- * @property {string[]} elements      Length-5 array parallel to the Five Elements
- * @property {string[]} animals       Length-12 array parallel to the Earthly Branches
- * @property {string|null} animalFont CSS font-family for the animal ring; null = default
- * @property {string}   centerTitle
- * @property {string}   centerSubtitle
- * @property {string}   svgTitle
- * @property {string}   svgDesc
- * @property {string}   footer
- * @property {(astro: number) => string}                    fmtYear
- * @property {(pol: string, elem: string, animal: string) => string} fmtInfo
- * @property {(pol: string, elem: string) => string}        fmtLegend
+ * @property {string}          pickerLabel
+ * @property {string}          btnBC
+ * @property {string}          btnAD
+ * @property {string}          btnToday
+ * @property {string}          yearUnit
+ * @property {string}          yang
+ * @property {string}          yin
+ * @property {string[]}        elements        Length-5 parallel to Five Elements
+ * @property {string[]}        stemSymbols     Length-10 glyphs shown in the stem ring
+ * @property {string[]}        branchSymbols   Length-12 glyphs shown in the branch ring
+ * @property {string[]}        animalSymbols   Length-12 glyphs shown in the animal ring
+ * @property {string|null}     animalFont      CSS font-family override for the animal ring
+ * @property {string[]|null}   stemWords       Length-10 words for centre/markers/aria; null → use stemSymbols
+ * @property {string[]|null}   branchWords     Length-12 words; null → use branchSymbols
+ * @property {string[]|null}   animalWords     Length-12 words; null → use animalSymbols
+ * @property {((ss:string,bs:string,sw:string,bw:string)=>string)|null} fmtGanzhi
+ * @property {string}          centerTitle    Displayed as centre text or arc ring title
+ * @property {'center'|'ring'} displayMode
+ * @property {number}          titleFontSize  Default font size for the title
+ * @property {number|null}     minFontSize    Minimum font size for arc shrinking (ring mode)
+ * @property {string}          svgTitle
+ * @property {string}          svgDesc
+ * @property {string}          footer
+ * @property {(astro:number)=>string}                           fmtYear
+ * @property {(pol:string,elem:string,animal:string)=>string}  fmtInfo
+ * @property {(pol:string,elem:string)=>string}                fmtLegend
  */
 
-// ── Shared constants — never localised ───────────────────────────────────────
+// ── Shared constants ──────────────────────────────────────────────────────────
 
 const NS   = 'http://www.w3.org/2000/svg';
 const FONT = "'Noto Serif SC','STSong','SimSun',serif";
 
 // Angular distance (°) below which the current-year marker label is nudged
-// away from the 甲子 marker. Tune freely.
 const LABEL_NUDGE_THRESHOLD = 12;
 
-// ── Color palettes ───────────────────────────────────────────────────────────
+// Arc title ring: maximum sweep and character-width approximation for Latin text
+const ARC_MAX_DEG         = 270;
+const ARC_CHAR_WIDTH_RATIO = 0.58;  // em fraction — tune if needed
 
-// C_ELEM[i] = [fillColor, textColor] for the 5 Five-Elements
+// ── Color palettes ────────────────────────────────────────────────────────────
+
+// C_ELEM[i]   = [fillColor, textColor] for the 5 Five-Elements
 const C_ELEM = [
   ['hsl(100, 38%, 58%)', 'hsl(100, 50%, 13%)'], // Wood
   ['hsl(  8, 56%, 62%)', 'hsl(  8, 65%, 13%)'], // Fire
@@ -87,7 +97,7 @@ const C_ELEM = [
   ['hsl(208, 44%, 60%)', 'hsl(208, 55%, 13%)'], // Water
 ];
 
-// C_STEM[i] = [fillColor, textColor] — Yang (brighter) / Yin (deeper) per element
+// C_STEM[i] = [fillColor, textColor] — Yang (even index) / Yin (odd) per element
 const C_STEM = [
   ['hsl(100, 40%, 62%)', 'hsl(100, 50%, 12%)'], // 甲 Yang Wood
   ['hsl(100, 34%, 52%)', 'hsl(100, 45%, 11%)'], // 乙 Yin  Wood
@@ -135,24 +145,6 @@ TPL.innerHTML = `
     align-items: center;
   }
 
-  h1 {
-    font-size: clamp(1.7rem,4vw,2.7rem);
-    font-weight: 300;
-    letter-spacing: .65em;
-    text-indent: .65em;
-    color: #c9a038;
-    margin: 0 0 7px;
-  }
-
-  .sub {
-    font-size: clamp(.58rem,.85vw,.72rem);
-    letter-spacing: .48em;
-    text-indent: .48em;
-    color: #6a5828;
-    margin-bottom: 28px;
-    text-transform: uppercase;
-  }
-
   /* ── Picker ── */
   .picker {
     display: flex;
@@ -170,7 +162,6 @@ TPL.innerHTML = `
     padding: 0 2px;
   }
 
-  /* Compound control: era toggle + input + year unit, no outer box */
   .picker-control {
     display: flex;
     align-items: center;
@@ -203,7 +194,6 @@ TPL.innerHTML = `
     border-color: #c9a038;
   }
 
-  /* Year input — underline only, signals editability */
   .picker-control input[type=number] {
     width: 52px;
     padding: 2px 2px 1px;
@@ -242,14 +232,6 @@ TPL.innerHTML = `
     transition: background .15s;
   }
   .btn-today:hover { background: rgba(201,160,56,.12); }
-
-  .year-info {
-    font-size: .78rem;
-    letter-spacing: .22em;
-    color: #8a7035;
-    text-align: center;
-    min-height: 1.4em;
-  }
 
   /* ── Wheel SVG ── */
   #wheel {
@@ -296,9 +278,8 @@ TPL.innerHTML = `
 </style>
 
 <div class="wrapper">
-  <svg id="wheel" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-    <title id="svgTitle"></title>
-    <desc id="svgDesc"></desc>
+  <svg id="wheel" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
+       role="img" aria-labelledby="svgTitleEl svgDescEl">
   </svg>
 
   <div class="picker">
@@ -314,7 +295,7 @@ TPL.innerHTML = `
     <button class="btn-today" id="btnToday"></button>
   </div>
 
-  <div class="legends" id="legends">
+  <div class="legends">
     <div class="legend" id="legend_yang"></div>
     <div class="legend" id="legend_yin"></div>
   </div>
@@ -348,17 +329,56 @@ class SexagenaryCycle extends HTMLElement {
     return LOCALES[tag] || LOCALES['zh'];
   }
 
-  /** Push all static locale strings into the Shadow DOM. */
+  /** Push all non-SVG locale strings into the Shadow DOM. */
   _applyLocale() {
     const L = this._locale;
-    this._q('svgTitle').textContent    = L.svgTitle;
-    this._q('svgDesc').textContent     = L.svgDesc;
-    this._q('lblPicker').textContent   = L.pickerLabel;
-    this._q('btnBC').textContent       = L.btnBC;
-    this._q('btnAD').textContent       = L.btnAD;
-    this._q('btnToday').textContent    = L.btnToday;
-    this._q('lblYearUnit').textContent = L.yearUnit;
-    this._q('lblFooter').textContent   = L.footer;
+    this._q('lblPicker').textContent    = L.pickerLabel;
+    this._q('btnBC').textContent        = L.btnBC;
+    this._q('btnAD').textContent        = L.btnAD;
+    this._q('btnToday').textContent     = L.btnToday;
+    this._q('lblYearUnit').textContent  = L.yearUnit;
+    this._q('lblFooter').textContent    = L.footer;
+  }
+
+  // ── Symbol / word helpers ────────────────────────────────────────────────────
+  // Each *Word helper returns the word for its domain, falling back to the
+  // symbol when the locale provides no separate word array.
+
+  /** Word for a Heavenly Stem, e.g. 'Jiǎ' or '甲'. */
+  _stemWord(si)   { const L = this._locale; return (L.stemWords   ?? L.stemSymbols  )[si]; }
+
+  /** Word for an Earthly Branch, e.g. 'Zǐ' or '子'. */
+  _branchWord(bi) { const L = this._locale; return (L.branchWords ?? L.branchSymbols)[bi]; }
+
+  /** Word for a zodiac animal, e.g. 'Rat' or '鼠'. */
+  _animalWord(bi) { const L = this._locale; return (L.animalWords ?? L.animalSymbols)[bi]; }
+
+  /**
+   * Full ganzhi label — symbols + words — for markers, centre, and aria.
+   * Falls back to bare symbols when the locale provides no fmtGanzhi.
+   */
+  _ganzhiLabel(si, bi) {
+    const L = this._locale;
+    const ss = L.stemSymbols[si], bs = L.branchSymbols[bi];
+    if (L.fmtGanzhi) {
+      return L.fmtGanzhi(ss, bs, this._stemWord(si), this._branchWord(bi));
+    }
+    return ss + bs;
+  }
+
+  /**
+   * Pronunciation-only subtitle for the centre, e.g. "(Jiǎ Zǐ)".
+   * Returns null when stem/branch words are identical to their symbols
+   * (meaning the locale has no distinct word form).
+   */
+  _pronunciationOf(si, bi) {
+    const L  = this._locale;
+    const sw = this._stemWord(si), bw = this._branchWord(bi);
+    // Only show a pronunciation line when the words differ from the symbols
+    if (sw !== L.stemSymbols[si] || bw !== L.branchSymbols[bi]) {
+      return `(${sw} ${bw})`;
+    }
+    return null;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -396,15 +416,10 @@ class SexagenaryCycle extends HTMLElement {
 
   // ── BC / AD helpers ───────────────────────────────────────────────────────────
 
-  // display year (positive int) + era flag → astronomical year integer
   _toAstro(displayYear, isBC) {
-    // AD n  → astronomical n  (n ≥ 1)
-    // BC 1  → astronomical 0
-    // BC n  → astronomical 1−n
     return isBC ? 1 - displayYear : displayYear;
   }
 
-  // astronomical year → { displayYear, isBC }
   _fromAstro(astro) {
     if (astro <= 0) return { displayYear: 1 - astro, isBC: true };
     return { displayYear: astro, isBC: false };
@@ -467,16 +482,13 @@ class SexagenaryCycle extends HTMLElement {
 
   _buildLegend() {
     const L = this._locale;
-
-    // Clear both containers before rebuilding (needed on locale change)
     this._q('legend_yang').innerHTML = '';
     this._q('legend_yin').innerHTML  = '';
 
     [L.yang, L.yin].forEach((polLabel, pi) => {
       const container = this._q(pi === 0 ? 'legend_yang' : 'legend_yin');
-
       L.elements.forEach((elemName, ei) => {
-        const stemIdx = ei * 2 + pi;   // 0..9 — Yang stems are even indices
+        const stemIdx = ei * 2 + pi;
         const [fillColor] = C_STEM[stemIdx];
 
         const item = document.createElement('span');
@@ -508,39 +520,43 @@ class SexagenaryCycle extends HTMLElement {
     const svg = this._q('wheel');
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-    // Re-insert accessibility nodes cleared by the loop above
-    const titleEl = document.createElementNS(NS, 'title');
-    titleEl.id = 'svgTitle';
-    const descEl  = document.createElementNS(NS, 'desc');
-    descEl.id  = 'svgDesc';
-    svg.appendChild(titleEl);
-    svg.appendChild(descEl);
-    this._applyLocale(); // refresh title/desc text
-
-    const L = this._locale;
-
+    const L  = this._locale;
     const CX = 500, CY = 500, π = Math.PI;
 
     const hasYear    = (astroYear !== null && astroYear !== undefined);
     const layoutYear = hasYear ? astroYear : new Date().getFullYear();
 
-    // Ring dimensions (px in 1000 × 1000 viewBox)
+    // ── SVG accessibility ──────────────────────────────────────────────────────
+
+    const titleEl = document.createElementNS(NS, 'title');
+    titleEl.id = 'svgTitleEl';
+    titleEl.textContent = L.svgTitle;
+    svg.appendChild(titleEl);
+
+    const descEl = document.createElementNS(NS, 'desc');
+    descEl.id = 'svgDescEl';
+    descEl.textContent = L.svgDesc;
+    svg.appendChild(descEl);
+
+    // ── Ring geometry ──────────────────────────────────────────────────────────
+
     const CENTER_R   = 240;
     const W_ANIMALS  =  36;
     const W_BRANCHES =  36;
     const W_STEMS    =  36;
-    const W_ELEMENTS =  36;
 
     const RA = [CENTER_R + 2,  CENTER_R + 2 + W_ANIMALS ];
     const RB = [RA[1],         RA[1] + W_BRANCHES        ];
     const RS = [RB[1],         RB[1] + W_STEMS           ];
-    const RE = [RS[1],         RS[1] + W_ELEMENTS        ];  // reserved for future use
+
+    // Title arc radius: just inside CENTER_R
+    const R_TITLE_ARC = CENTER_R - 22;   // 218 px
 
     const cycleOffset = ((layoutYear - 1984) % 60 + 60) % 60;
     const cycleStart  = layoutYear - cycleOffset;
     const currentIdx  = hasYear ? cycleOffset : -1;
 
-    // ── Local helpers ──────────────────────────────────────────────────────────
+    // ── Local SVG helpers ──────────────────────────────────────────────────────
 
     const mk = (tag, attrs = {}, txt) => {
       const el = document.createElementNS(NS, tag);
@@ -571,12 +587,12 @@ class SexagenaryCycle extends HTMLElement {
     };
 
     /**
-     * Place a text glyph (character or emoji) in a ring segment.
-     * @param {[number,number]} ring        [innerR, outerR]
-     * @param {number}          angleDeg    Centre angle of the segment
-     * @param {string}          ch          Character / emoji to display
-     * @param {string}          fill        Text colour
-     * @param {string|null}     fontOverride Optional CSS font-family override
+     * Place a single glyph (character or emoji) radially in a ring segment.
+     * @param {[number,number]} ring
+     * @param {number}          angleDeg  Centre angle of the segment (degrees)
+     * @param {string}          ch        Character / emoji
+     * @param {string}          fill      Text colour
+     * @param {string|null}     fontOverride
      */
     const placeText = (ring, angleDeg, ch, fill, fontOverride = null) => {
       const r = midR(ring), fs = fontSize(ring);
@@ -590,54 +606,130 @@ class SexagenaryCycle extends HTMLElement {
       }, ch);
     };
 
-    // Outer diamond marker + tangent-aligned text labels.
-    // labelAngleDeg (optional): text floats to this angle, diamond stays at
-    // angleDeg, and a dashed leader line connects them.
-    const outerMarker = (angleDeg, label1, label2, diamondFill, textFill, labelAngleDeg) => {
+    /**
+     * Render L.centerTitle as individual characters on a circular arc,
+     * symmetric about 12 o'clock (the 子午线 / -90° axis).
+     *
+     * Arc sweep is as wide as the text needs at titleFontSize, capped at
+     * ARC_MAX_DEG. Font is reduced if needed; text is hard-clipped at
+     * ARC_MAX_DEG / 2 on each side (symmetric) at minFontSize.
+     */
+    const renderTitleRing = () => {
+      const text       = L.centerTitle;
+      const chars      = [...text];              // Unicode-safe split
+      const defaultFS  = L.titleFontSize ?? 20;
+      const minFS      = L.minFontSize    ?? 12;
+
+      // Degrees occupied by one character at a given font size
+      const charDegAt = fs => (fs * ARC_CHAR_WIDTH_RATIO * 180) / (π * R_TITLE_ARC);
+
+      const totalDegDefault = chars.length * charDegAt(defaultFS);
+
+      let fs = defaultFS;
+      if (totalDegDefault > ARC_MAX_DEG) {
+        // Shrink font to fit within ARC_MAX_DEG
+        fs = (ARC_MAX_DEG * π * R_TITLE_ARC) / (chars.length * ARC_CHAR_WIDTH_RATIO * 180);
+        fs = Math.max(fs, minFS);
+      }
+
+      const charDeg  = charDegAt(fs);
+      const totalDeg = chars.length * charDeg;
+
+      // Start angle: position text symmetrically about -90° (12 o'clock)
+      let angle = -90 - totalDeg / 2;
+
+      for (const ch of chars) {
+        const mid = angle + charDeg / 2;
+
+        // Hard clip: skip characters whose centre falls outside ±ARC_MAX_DEG/2
+        if (Math.abs(mid - (-90)) <= ARC_MAX_DEG / 2) {
+          const rad = mid * π / 180;
+          const tx  = CX + R_TITLE_ARC * Math.cos(rad);
+          const ty  = CY + R_TITLE_ARC * Math.sin(rad);
+          svg.appendChild(mk('text', {
+            x: tx, y: ty,
+            'text-anchor': 'middle', 'dominant-baseline': 'central',
+            'font-size': fs, 'font-family': FONT,
+            fill: '#c49830',
+            transform: `rotate(${mid + 90},${tx},${ty})`
+          }, ch));
+        }
+
+        angle += charDeg;
+      }
+    };
+
+    /**
+     * Outer diamond marker with stacked text labels, tangentially oriented.
+     *
+     * Labels (from wheel edge outward):
+     *   ganzhi      — original symbols only (always Chinese), large
+     *   pron        — pronunciation / romanisation (optional, smaller)
+     *   yearLabel   — formatted year string
+     *
+     * When pron is provided the layout expands by one radial step.
+     *
+     * @param {number}      angleDeg      Diamond angle (degrees)
+     * @param {number}      si            Stem index 0-9
+     * @param {number}      bi            Branch index 0-11
+     * @param {string}      yearLabel     Pre-formatted year string
+     * @param {string}      diamondFill
+     * @param {string}      textFill
+     * @param {number|undefined} labelAngleDeg  Optional nudged label angle
+     */
+    const outerMarker = (angleDeg, si, bi, yearLabel, diamondFill, textFill, labelAngleDeg) => {
       const rad = angleDeg * π / 180;
-      const c = Math.cos(rad), s = Math.sin(rad);
-      const pc = -s, ps = c;
+      const c   = Math.cos(rad), s = Math.sin(rad);
+      const pc  = -s, ps = c;  // tangent direction
 
-      const dMidR  = RS[1] + 17;
-      const innerR = dMidR - 4.5;
-      const outerR = dMidR + 9;
-      const hw     = 5.5;
-
+      // Diamond
+      const dMid  = RS[1] + 17;
+      const dIn   = dMid - 4.5;
+      const dOut  = dMid + 9;
+      const hw    = 5.5;
       svg.appendChild(mk('polygon', {
         points: [
-          `${CX + outerR * c},${CY + outerR * s}`,
-          `${CX + dMidR * c + hw * pc},${CY + dMidR * s + hw * ps}`,
-          `${CX + innerR * c},${CY + innerR * s}`,
-          `${CX + dMidR * c - hw * pc},${CY + dMidR * s - hw * ps}`,
+          `${CX + dOut  * c},${CY + dOut  * s}`,
+          `${CX + dMid  * c + hw * pc},${CY + dMid  * s + hw * ps}`,
+          `${CX + dIn   * c},${CY + dIn   * s}`,
+          `${CX + dMid  * c - hw * pc},${CY + dMid  * s - hw * ps}`,
         ].join(' '),
         fill: diamondFill, opacity: '0.9'
       }));
 
-      const lAngleDeg = (labelAngleDeg !== undefined) ? labelAngleDeg : angleDeg;
-      const lrad = lAngleDeg * π / 180;
-      const lc = Math.cos(lrad), ls = Math.sin(lrad);
-      const textRot = lAngleDeg + 90;
-      const rBase  = RS[1] + 58;
-      const radOff = 18;
+      const la  = labelAngleDeg ?? angleDeg;
+      const lr  = la * π / 180;
+      const lc  = Math.cos(lr), ls = Math.sin(lr);
+      const rot = la + 90;
 
-      const x1 = CX + (rBase + radOff) * lc, y1 = CY + (rBase + radOff) * ls;
-      const x2 = CX + (rBase - radOff) * lc, y2 = CY + (rBase - radOff) * ls;
+      // Ganzhi display in marker: symbols only (always glyphs, never words)
+      const ganzhi = L.stemSymbols[si] + L.branchSymbols[bi];
+      const pron   = this._pronunciationOf(si, bi);
 
-      svg.appendChild(mk('text', {
-        x: x1, y: y1,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 22, 'font-family': FONT, fill: textFill,
-        transform: `rotate(${textRot},${x1},${y1})`
-      }, label1));
+      // Radial positions differ based on whether we have a pronunciation line
+      const rGanzhi = pron ? RS[1] + 82 : RS[1] + 76;
+      const rPron   = RS[1] + 60;
+      const rYear   = pron ? RS[1] + 38 : RS[1] + 40;
 
-      if (label2) {
+      const fGanzhi = pron ? 20 : 22;
+      const fPron   = 14;
+      const fYear   = pron ? 15 : 17;
+
+      const pt = (r) => ({ x: CX + r * lc, y: CY + r * ls });
+
+      const addLabel = (r, text, fs) => {
+        const { x, y } = pt(r);
         svg.appendChild(mk('text', {
-          x: x2, y: y2,
+          x, y,
           'text-anchor': 'middle', 'dominant-baseline': 'central',
-          'font-size': 17, 'font-family': FONT, fill: textFill,
-          transform: `rotate(${textRot},${x2},${y2})`
-        }, label2));
-      }
+          'font-size': fs, 'font-family': FONT,
+          fill: textFill, transform: `rotate(${rot},${x},${y})`
+        }, text));
+      };
+
+      addLabel(rGanzhi, ganzhi, fGanzhi);
+      if (pron) addLabel(rPron, pron, fPron);
+      addLabel(rYear, yearLabel, fYear);
     };
 
     // ── Background ─────────────────────────────────────────────────────────────
@@ -645,27 +737,43 @@ class SexagenaryCycle extends HTMLElement {
 
     // ── 60 segments ─────────────────────────────────────────────────────────────
     for (let i = 0; i < 60; i++) {
-      const si = i % 10, bi = i % 12;
+      const si = i % 10, bi = i % 12, ei = Math.floor(si / 2);
       const a1 = -93 + i * 6, a2 = a1 + 6, ac = a1 + 3;
       const segYear = cycleStart + i;
 
       const g = mk('g');
+      g.setAttribute('role', 'button');
+      g.setAttribute('tabindex', '0');
       g.style.cursor = 'pointer';
-      g.addEventListener('click', () => this._selectSegment(segYear));
+
+      // Tooltip / aria-label: words (with symbol fallback) everywhere
+      const ttGanzhi   = this._ganzhiLabel(si, bi);
+      const ttPolarity = si % 2 === 0 ? L.yang : L.yin;
+      const ttInfo     = L.fmtInfo(ttPolarity, L.elements[ei], this._animalWord(bi));
+      const ttYear     = L.fmtYear(segYear);
+
+      const tooltipEl = mk('title');
+      tooltipEl.textContent = `${ttGanzhi}\n${ttYear}\n${ttInfo}`;
+      g.appendChild(tooltipEl);
+      g.setAttribute('aria-label', `${ttGanzhi}, ${ttYear}, ${ttInfo}`);
+
+      g.addEventListener('click',   () => this._selectSegment(segYear));
+      g.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') this._selectSegment(segYear);
+      });
 
       const isHighlight = (i === currentIdx);
 
-      const darkenHsl = (hslStr, amount = 14) =>
+      const darkenHsl = (hslStr, amt = 14) =>
         hslStr.replace(
           /hsl\((\s*[\d.]+\s*),(\s*[\d.]+%\s*),(\s*[\d.]+)%\s*\)/,
-          (_, h, s, l) => `hsl(${h},${s},${Math.max(0, parseFloat(l) - amount)}%)`
+          (_, h, s, l) => `hsl(${h},${s},${Math.max(0, parseFloat(l) - amt)}%)`
         );
 
-      // Rings: [geometry, content, colors, optional font override]
       const rings = [
-        [RA, L.animals[bi],  C_BRANCH[bi], L.animalFont],
-        [RB, L.branches[bi],   C_BRANCH[bi], null        ],
-        [RS, L.stems[si],      C_STEM[si],   null        ],
+        [RA, L.animalSymbols[bi],  C_BRANCH[bi], L.animalFont],
+        [RB, L.branchSymbols[bi],  C_BRANCH[bi], null        ],
+        [RS, L.stemSymbols[si],    C_STEM[si],   null        ],
       ];
 
       for (const [ring, ch, [fill, textColor], fontOverride] of rings) {
@@ -680,11 +788,11 @@ class SexagenaryCycle extends HTMLElement {
       svg.appendChild(g);
     }
 
-    // ── Ring separator circles ─────────────────────────────────────────────────
+    // ── Ring separators ────────────────────────────────────────────────────────
     for (const r of [RA[0], RA[1], RB[1], RS[1]])
       svg.appendChild(circ(r, 'none', '#c8b890', 0.9));
 
-    // ── Major dividers every 12 (branch-cycle boundary) ───────────────────────
+    // Major dividers every 12 segments (branch-cycle boundary)
     for (let i = 0; i < 60; i += 12) {
       const a = (-93 + i * 6) * π / 180;
       svg.appendChild(mk('line', {
@@ -694,7 +802,7 @@ class SexagenaryCycle extends HTMLElement {
       }));
     }
 
-    // ── Minor dividers every 10 (stem-cycle boundary) ─────────────────────────
+    // Minor dividers every 10 segments (stem-cycle boundary)
     for (let i = 0; i < 60; i += 10) {
       const a = (-93 + i * 6) * π / 180;
       svg.appendChild(mk('line', {
@@ -704,7 +812,7 @@ class SexagenaryCycle extends HTMLElement {
       }));
     }
 
-    // ── Element-pair dividers every 2 ─────────────────────────────────────────
+    // Element-pair dividers every 2 segments
     for (let i = 0; i < 60; i += 2) {
       if (i % 10 === 0 || i % 12 === 0) continue;
       const a = (-93 + i * 6) * π / 180;
@@ -715,66 +823,77 @@ class SexagenaryCycle extends HTMLElement {
       }));
     }
 
-    // ── Centre text ─────────────────────────────────────────────────────────────
+    // ── Centre content ─────────────────────────────────────────────────────────
+
+    const txtCenter = (y, fs, fill, content, spacing) => {
+      const attrs = {
+        x: CX, y,
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': fs, 'font-family': FONT, fill,
+      };
+      if (spacing) attrs['letter-spacing'] = spacing;
+      svg.appendChild(mk('text', attrs, content));
+    };
+
+    const divider = (y) => svg.appendChild(mk('line', {
+      x1: CX - 60, y1: y, x2: CX + 60, y2: y,
+      stroke: '#c8b890', 'stroke-width': 0.8
+    }));
+
+    const isRing = (L.displayMode === 'ring');
+
     if (hasYear) {
-      // Title — pushed up to make room for info below
-      svg.appendChild(mk('text', {
-        x: CX, y: CY - 90,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 44, 'font-family': FONT,
-        fill: '#c49830', 'letter-spacing': '6'
-      }, L.centerTitle));
-      svg.appendChild(mk('text', {
-        x: CX, y: CY - 48,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 20, 'font-family': FONT,
-        fill: '#8a7040', 'letter-spacing': '3'
-      }, L.centerSubtitle));
+      const si    = currentIdx % 10, bi = currentIdx % 12, ei = Math.floor(si / 2);
+      // Symbols always used for the large centre glyph pair
+      const ganzhi = L.stemSymbols[si] + L.branchSymbols[bi];
+      const pron   = this._pronunciationOf(si, bi);
+      const pol    = si % 2 === 0 ? L.yang : L.yin;
+      // Words (with symbol fallback) for the info line
+      const info   = L.fmtInfo(pol, L.elements[ei], this._animalWord(bi));
 
-      // Thin divider
-      svg.appendChild(mk('line', {
-        x1: CX - 60, y1: CY - 18, x2: CX + 60, y2: CY - 18,
-        stroke: '#c8b890', 'stroke-width': 0.8
-      }));
+      if (isRing) {
+        // Title drawn as arc ring
+        renderTitleRing();
 
-      // Ganzhi pair — the "name" of the selected year; always Chinese symbols
-      const si = currentIdx % 10, bi = currentIdx % 12, ei = Math.floor(si / 2);
-      const ganzhi   = L.stems[si] + L.branches[bi];
-      const polarity = si % 2 === 0 ? L.yang : L.yin;
-      const info     = L.fmtInfo(polarity, L.elements[ei], L.animals[bi]);
+        // Centre: ganzhi + optional pronunciation + info
+        if (pron) {
+          txtCenter(CY + 5,  56, '#c49830', ganzhi, '8');
+          txtCenter(CY + 66, 17, '#8a7040', pron, '2');
+          txtCenter(CY + 93, 20, '#8a7040', info, '3');
+        } else {
+          txtCenter(CY + 15, 62, '#c49830', ganzhi, '8');
+          txtCenter(CY + 90, 22, '#8a7040', info,   '4');
+        }
 
-      svg.appendChild(mk('text', {
-        x: CX, y: CY + 30,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 48, 'font-family': FONT,
-        fill: '#c49830', 'letter-spacing': '8'
-      }, ganzhi));
-      svg.appendChild(mk('text', {
-        x: CX, y: CY + 95,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 24, 'font-family': FONT,
-        fill: '#8a7040', 'letter-spacing': '4'
-      }, info));
+      } else {
+        // 'center' displayMode: title as text above, ganzhi below
+        txtCenter(CY - 80, L.titleFontSize ?? 44, '#c49830', L.centerTitle, '8');
+        // divider(CY - 52);
+
+        if (pron) {
+          txtCenter(CY + 10, 52, '#c49830', ganzhi, '8');
+          txtCenter(CY + 64, 16, '#8a7040', pron,   '2');
+          txtCenter(CY + 90, 20, '#8a7040', info,   '3');
+        } else {
+          txtCenter(CY + 22, 52, '#c49830', ganzhi, '8');
+          txtCenter(CY + 90, 22, '#8a7040', info,   '4');
+        }
+      }
+
     } else {
-      // No year selected — original centred layout
-      svg.appendChild(mk('text', {
-        x: CX, y: CY - 22,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 48, 'font-family': FONT,
-        fill: '#c49830', 'letter-spacing': '6'
-      }, L.centerTitle));
-      svg.appendChild(mk('text', {
-        x: CX, y: CY + 18,
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'font-size': 24, 'font-family': FONT,
-        fill: '#8a7040', 'letter-spacing': '3'
-      }, L.centerSubtitle));
+      // No year selected
+      if (isRing) {
+        renderTitleRing();
+        // Centre left intentionally empty — user clicks a segment to populate it
+      } else {
+        txtCenter(CY, L.titleFontSize ?? 48, '#c49830', L.centerTitle, '12');
+      }
     }
 
-    // ── 甲子 marker (12 o'clock, cycle start) — label always in Chinese ────────
-    outerMarker(-90, '甲子', L.fmtYear(cycleStart), '#c49830', '#7a5a20');
+    // ── 甲子 marker (12 o'clock, cycle start) ──────────────────────────────────
+    outerMarker(-90, 0, 0, L.fmtYear(cycleStart), '#c49830', '#7a5a20');
 
-    // ── Current-year marker (vermilion, only when year set and not 甲子) ────────
+    // ── Current-year marker (vermilion) ────────────────────────────────────────
     if (hasYear && currentIdx !== 0) {
       const curAngle = -90 + currentIdx * 6;
 
@@ -788,18 +907,11 @@ class SexagenaryCycle extends HTMLElement {
       }
 
       const si = currentIdx % 10, bi = currentIdx % 12;
-      outerMarker(
-        curAngle,
-        L.stems[si] + L.branches[bi],
-        L.fmtYear(astroYear),
-        '#cc3010',
-        '#8a2008',
-        labelAngle
-      );
+      outerMarker(curAngle, si, bi, L.fmtYear(astroYear), '#cc3010', '#8a2008', labelAngle);
     }
   }
 
-  // ── Segment click → update year ───────────────────────────────────────────────
+  // ── Segment click / keyboard ──────────────────────────────────────────────────
 
   _selectSegment(segYear) {
     const { displayYear, isBC } = this._fromAstro(segYear);

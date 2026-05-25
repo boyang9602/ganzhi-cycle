@@ -1,17 +1,12 @@
 // vi.js
 /**
  * Vietnamese locale for <sexagenary-cycle>.
- *
- * Animals are rendered as emoji — universal pictograms that require no
- * translation and scale gracefully across scripts.
- * Heavenly Stems (天干) and Earthly Branches (地支) are universal symbols
- * and are NOT part of any locale — they never change.
+ * Note: Vietnamese zodiac replaces Rabbit with Cat.
  *
  * @satisfies {import('../sexagenary-cycle.js').LocaleDef}
  */
 const vi = {
   label: 'Tiếng Việt',
-
   // ── Year picker ──────────────────────────────────────────────────────────────
   pickerLabel: 'Năm',
   btnBC:       'TCN',
@@ -19,46 +14,42 @@ const vi = {
   btnToday:    'Hôm nay',
   yearUnit:    '',
 
-  // Stem Branches
-  stems: ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], 
-  branches: ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], 
-
   // ── Legend ───────────────────────────────────────────────────────────────────
-  yang:     '阳 (Dương)',
-  yin:      '阴 (Âm)',
-  elements: ['木 (Mộc)', '火 (Hỏa)', '土 (Thổ)', '金 (Kim)', '水 (Thủy)'],
+  yang:     'Dương',
+  yin:      'Âm',
+  elements: ['Mộc', 'Hỏa', 'Thổ', 'Kim', 'Thủy'],
 
-  // ── Animal ring ──────────────────────────────────────────────────────────────
-  animals: ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐒', '🐓', '🐕', '🐷'],
-  animalFont: "'Noto Emoji','Segoe UI Emoji','Apple Color Emoji',sans-serif",
+  // ── Symbols (displayed in the rings) ─────────────────────────────────────────
+  stemSymbols:   ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+  branchSymbols: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'],
+  // Vietnamese zodiac: Cat instead of Rabbit
+  animalSymbols: ['🐭', '🐂', '🐯', '🐱', '🐉', '🐍', '🐴', '🐑', '🐒', '🐔', '🐶', '🐷'],
+  animalFont:    null,
 
-  // ── SVG centre ───────────────────────────────────────────────────────────────
-  centerTitle:    '六十甲子',
-  centerSubtitle: 'Chu kỳ 60 năm Can Chi',
+  // ── Words (displayed in centre, markers, tooltips, aria) ─────────────────────
+  stemWords:   ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'],
+  branchWords: ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'],
+  animalWords: ['Chuột', 'Trâu', 'Hổ', 'Mèo', 'Rồng', 'Rắn', 'Ngựa', 'Dê', 'Khỉ', 'Gà', 'Chó', 'Lợn'],
+
+  fmtGanzhi: (stemSym, branchSym, stemWord, branchWord) =>
+    `${stemSym}${branchSym} (${stemWord} ${branchWord})`,
+
+  // ── Title ────────────────────────────────────────────────────────────────────
+  centerTitle:   'Lục Thập Hoa Giáp',
+  displayMode:   'ring',
+  titleFontSize: 48,
+  minFontSize:   12,
 
   // ── Accessibility ─────────────────────────────────────────────────────────────
-  svgTitle: 'Sơ đồ chu kỳ Lục thập Giáp Tý',
-  svgDesc:  'Biểu đồ vòng tròn chu kỳ 60 năm của Thập Can và Thập Nhị Chi',
+  svgTitle: 'Chu kỳ Lục Thập Hoa Giáp',
+  svgDesc:  'Sơ đồ vòng tròn chu kỳ 60 năm của Thiên Can và Địa Chi',
 
   // ── Footer ───────────────────────────────────────────────────────────────────
-  footer: 'Ngũ Hành — Thiên Can — Địa Chi — Mười hai con giáp',
+  footer: 'Ngũ Hành — Thiên Can — Địa Chi — Thập Nhị Sinh Vật',
 
   // ── Formatters ───────────────────────────────────────────────────────────────
-
-  /** @param {number} astro */
-  fmtYear: (astro) => astro <= 0 ? `${1 - astro} TCN` : `${astro} SCN`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   * @param {string} animal
-   */
-  fmtInfo: (pol, elem, animal) => `${pol} ${elem} · ${animal}`,
-
-  /**
-   * @param {string} pol
-   * @param {string} elem
-   */
+  fmtYear:   (astro) => astro <= 0 ? `${1 - astro} TCN` : `${astro} SCN`,
+  fmtInfo:   (pol, elem, animal) => `${pol} ${elem} · ${animal}`,
   fmtLegend: (pol, elem) => `${pol} ${elem}`,
 };
 
