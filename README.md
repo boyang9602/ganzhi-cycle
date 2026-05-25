@@ -7,14 +7,14 @@ interactive SVG wheel, with built-in multi-language support.
 ## Installation
 
 ```bash
-npm install sexagenary-cycle
+npm install ganzhi-cycle
 ```
 
-Or use directly from a CDN (once published):
+Or use directly from a CDN:
 
 ```html
 <script type="module"
-  src="https://cdn.jsdelivr.net/npm/sexagenary-cycle/src/sexagenary-cycle.js">
+  src="https://cdn.jsdelivr.net/npm/ganzhi-cycle/src/sexagenary-cycle.js">
 </script>
 ```
 
@@ -86,7 +86,7 @@ selected year's ganzhi pair and info line.
 3. Register before or after the element connects:
 
 ```js
-import { registerLocale } from 'sexagenary-cycle';
+import { registerLocale } from 'ganzhi-cycle';
 import jaLocale from './locales/ja.js';
 registerLocale('ja', jaLocale);
 ```
@@ -171,7 +171,7 @@ when available), the formatted year, and the polarity/element/animal line.
 ## Project structure
 
 ```
-sexagenary-cycle/
+ganzhi-cycle/
 ├── src/
 │   ├── locales/
 │   │   ├── zh.js          Simplified Chinese (built-in)

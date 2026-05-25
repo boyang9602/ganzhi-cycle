@@ -1,8 +1,9 @@
 {
-  "name": "sexagenary-cycle",
+  "name": "ganzhi-cycle",
   "version": "1.0.0",
   "description": "A web component that visualises the 60-year sexagenary cycle (六十甲子) of Heavenly Stems and Earthly Branches, with multi-language support.",
   "type": "module",
+  "main": "./src/sexagenary-cycle.js",
   "exports": {
     ".": "./src/sexagenary-cycle.js"
   },
@@ -12,6 +13,7 @@
   "keywords": [
     "web-component",
     "custom-element",
+    "ganzhi-cycle",
     "sexagenary-cycle",
     "ganzhi",
     "heavenly-stems",
@@ -28,6 +30,7 @@
   "bugs": {
     "url": "https://github.com/boyang9602/sexagenary-cycle-visualization"
   },
+  "license": "GPL-3.0",
   "author": "Bo Yang",
   "sideEffects": [
     "./src/sexagenary-cycle.js"
