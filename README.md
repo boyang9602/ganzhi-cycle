@@ -4,6 +4,10 @@ A zero-dependency web component that renders the 60-year sexagenary cycle
 (六十甲子) of Heavenly Stems (天干) and Earthly Branches (地支) as an
 interactive SVG wheel, with built-in multi-language support.
 
+https://github.com/user-attachments/assets/2affbd7f-c167-4ff3-83fa-15779da60710
+
+An real example in my own project: https://huangli365.pages.dev/info/stems-branches/
+
 ## Installation
 
 ```bash
